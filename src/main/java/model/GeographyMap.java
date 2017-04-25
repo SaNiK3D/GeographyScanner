@@ -11,7 +11,7 @@ public class GeographyMap {
     private int maxY;
     private int gridStep;
 
-    public GeographyMap(Coordinate[] borderCoordinates, int gridStep, int hY) {
+    public GeographyMap(Coordinate[] borderCoordinates, int gridStep) {
         findMinAndMaxCoordinates(borderCoordinates);
         this.gridStep = gridStep;
         makeGrid();
@@ -32,12 +32,14 @@ public class GeographyMap {
     }
 
     private void makeGrid() {
-        int size = (maxX - minX) / gridStep;
-        gridHeights = new double[size][size];
+        int sizeX = (maxX - minX) / gridStep;
+        int sizeY = (maxY - minY) / gridStep;
+        gridHeights = new double[sizeX][sizeY];
+
     }
 
     public double[][] interpolate(Function2Args[] functions){
-        for(int i = 0; i < )
+        for(int n = 0; n < )
     }
 
 }
