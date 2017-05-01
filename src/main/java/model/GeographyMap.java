@@ -105,7 +105,9 @@ public class GeographyMap {
         x = start.x;
         y = start.y;
         err = el / 2;
-        columnSizes[0] = (y - minY) / gridStep + 1;
+        int sizeIndex = (x - minX) / gridStep;
+        int gridY = (y - minY) / gridStep + 1;
+        columnSizes[sizeIndex] = Math.max(gridY, columnSizes[sizeIndex]);
 
         for (int t = 0; t < el; t++)//идём по всем точкам, начиная со второй и до последней
         {
@@ -119,8 +121,8 @@ public class GeographyMap {
                 y += pdy;//цикл идёт по иксу; сдвинуть вверх или вниз, если по y
             }
 
-            int sizeIndex = (x - minX) / gridStep + 1;
-            int gridY = (y - minY) / gridStep + 1;
+            sizeIndex = (x - minX) / gridStep;
+            gridY = (y - minY) / gridStep + 1;
             columnSizes[sizeIndex] = Math.max(gridY, columnSizes[sizeIndex]);
         }
     }
@@ -130,22 +132,17 @@ public class GeographyMap {
     }
 
     public double[][] interpolate(Function2Args[] functions) {
-        Map<Coordinate, Double> functionsMap = new HashMap<Coordinate, Double>();
         Function2Args functionsInCells[] = new Function2Args[functions.length];
         for (int i = 0; i < functions.length; i++) {
-            int gridX = (functions[i].coordinate.x - minX) / gridStep + 1;
+            int gridX = (functions[i].coordinate.x - minX) / gridStep;
             int y = (functions[i].coordinate.y - minY) / gridStep + 1;
-            functionsMap.put(new Coordinate(gridX, y), functions[i].value);
+
             functionsInCells[i] = new Function2Args(gridX, y, functions[i].value);
+            gridHeights[gridX][y] = functions[i].value;
         }
         for (int i = 0; i < gridHeights.length; i++) {
             for (int j = 0; j < gridHeights[i].length; j++) {
-                Coordinate currentCoordinate = new Coordinate(i, j);
-                if (functionsMap.containsKey(currentCoordinate)) {
-                    gridHeights[i][j] = functionsMap.get(currentCoordinate);
-                } else {
-                    gridHeights[i][j] = interpolateAtXY(i, j, functionsInCells);
-                }
+                gridHeights[i][j] = interpolateAtXY(i, j, functionsInCells);
             }
         }
 
@@ -154,15 +151,17 @@ public class GeographyMap {
 
     private double interpolateAtXY(int x, int y, Function2Args[] functions) {
         double lagrangeXY = 0d;
-        for (int n = 0; n < gridHeights.length; n++) {
+        for (int n = 0; n < functions.length; n++) {
+            for (int m = 0; m < functions.length; m++) {
                 double basis = functions[n].value;
-                for (int i = 0; i < gridHeights.length; i++) {
-                    if (i == n) continue;
-                    for (int j = 0; j < gridHeights[n].length; j++) {
-                        if (j == n) continue;
+                for(int i = 0; i < functions.length; i++) {
+                    if(i == n) continue;
+                    for (int j = 0; j < functions.length; j++) {
+                        if (j == m) continue;
                         basis *= (x - functions[i].coordinate.x) * (y - functions[j].coordinate.y) /
-                                (functions[n].coordinate.x - functions[i].coordinate.x) * (functions[n].coordinate.y - functions[j].coordinate.y);
+                                (functions[n].coordinate.x - functions[i].coordinate.x) * (functions[m].coordinate.y - functions[j].coordinate.y);
                     }
+                }
                 lagrangeXY += basis;
             }
         }
@@ -170,4 +169,17 @@ public class GeographyMap {
         return lagrangeXY;
     }
 
+    public static void main(String[] args) {
+        Coordinate[] c = new Coordinate[]{new Coordinate(5, 5), new Coordinate(5, 100), new Coordinate(200, 150), new Coordinate(200, 5)};
+        GeographyMap map = new GeographyMap(c, 1);
+        Function2Args[] funs = new Function2Args[]{new Function2Args(6, 6, 10), new Function2Args(40, 20, 50), new Function2Args(30, 100, 200)};
+        double[][] grid = map.interpolate(funs);
+        for (int i = 0; i < grid.length; i++) {
+            for (int j = 0; j < grid[i].length; j++) {
+                System.out.print(grid[i][j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.printf("%10.2f", grid[0][0]);
+    }
 }

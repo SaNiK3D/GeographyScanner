@@ -5,9 +5,9 @@ package model;
  */
 public class Function2Args {
     public final Coordinate coordinate;
-    public final double value;
+    public final int value;
 
-    public Function2Args(int x, int y, double value) {
+    public Function2Args(int x, int y, int value) {
         coordinate = new Coordinate(x, y);
         this.value = value;
     }
