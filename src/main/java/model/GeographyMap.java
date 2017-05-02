@@ -1,6 +1,8 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -68,12 +70,12 @@ public class GeographyMap {
 
         incx = sign(dx);
     /*
-	 * Определяем, в какую сторону нужно будет сдвигаться. Если dx < 0, т.е. отрезок идёт
+     * Определяем, в какую сторону нужно будет сдвигаться. Если dx < 0, т.е. отрезок идёт
 	 * справа налево по иксу, то incx будет равен -1.
 	 * Это будет использоваться в цикле постороения.
 	 */
         incy = sign(dy);
-	/*
+    /*
 	 * Аналогично. Если рисуем отрезок снизу вверх -
 	 * это будет отрицательный сдвиг для y (иначе - положительный).
 	 */
@@ -133,16 +135,22 @@ public class GeographyMap {
 
     public double[][] interpolate(Function2Args[] functions) {
         Function2Args functionsInCells[] = new Function2Args[functions.length];
+        Map<Coordinate, Double> functionMap = new HashMap<Coordinate, Double>();
         for (int i = 0; i < functions.length; i++) {
             int gridX = (functions[i].coordinate.x - minX) / gridStep;
-            int y = (functions[i].coordinate.y - minY) / gridStep + 1;
+            int gridY = (functions[i].coordinate.y - minY) / gridStep + 1;
 
-            functionsInCells[i] = new Function2Args(gridX, y, functions[i].value);
-            gridHeights[gridX][y] = functions[i].value;
+            functionsInCells[i] = new Function2Args(gridX, gridY, functions[i].value);
+
+            Coordinate c = new Coordinate(gridX, gridY);
+            functionMap.put(c, functions[i].value);
         }
         for (int i = 0; i < gridHeights.length; i++) {
             for (int j = 0; j < gridHeights[i].length; j++) {
-                gridHeights[i][j] = interpolateAtXY(i, j, functionsInCells);
+                if (functionMap.containsKey(new Coordinate(i, j)))
+                    gridHeights[i][j] = functionMap.get(new Coordinate(i, j));
+                else
+                    gridHeights[i][j] = interpolateAtXY(i, j, functionsInCells);
             }
         }
 
@@ -150,29 +158,26 @@ public class GeographyMap {
     }
 
     private double interpolateAtXY(int x, int y, Function2Args[] functions) {
-        double lagrangeXY = 0d;
-        for (int n = 0; n < functions.length; n++) {
-            for (int m = 0; m < functions.length; m++) {
-                double basis = functions[n].value;
-                for(int i = 0; i < functions.length; i++) {
-                    if(i == n) continue;
-                    for (int j = 0; j < functions.length; j++) {
-                        if (j == m) continue;
-                        basis *= (x - functions[i].coordinate.x) * (y - functions[j].coordinate.y) /
-                                (functions[n].coordinate.x - functions[i].coordinate.x) * (functions[m].coordinate.y - functions[j].coordinate.y);
-                    }
-                }
-                lagrangeXY += basis;
-            }
+        double numerator = 0d;
+        double denominator = 0d;
+        for (Function2Args f : functions) {
+            double weight = 1 / Math.pow(distance(x, y, f.coordinate.x, f.coordinate.y), 4) ;
+
+            denominator += weight;
+            numerator += weight * f.value;
         }
 
-        return lagrangeXY;
+        return numerator / denominator;
+    }
+
+    private double distance(int x1, int y1, int x2, int y2) {
+        return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
     }
 
     public static void main(String[] args) {
-        Coordinate[] c = new Coordinate[]{new Coordinate(5, 5), new Coordinate(5, 100), new Coordinate(200, 150), new Coordinate(200, 5)};
+        Coordinate[] c = new Coordinate[]{new Coordinate(5, 5), new Coordinate(5, 20), new Coordinate(20, 20), new Coordinate(20, 5)};
         GeographyMap map = new GeographyMap(c, 1);
-        Function2Args[] funs = new Function2Args[]{new Function2Args(6, 6, 10), new Function2Args(40, 20, 50), new Function2Args(30, 100, 200)};
+        Function2Args[] funs = new Function2Args[]{new Function2Args(6, 6, 10), new Function2Args(40, 20, 500), new Function2Args(30, 100, 200)};
         double[][] grid = map.interpolate(funs);
         for (int i = 0; i < grid.length; i++) {
             for (int j = 0; j < grid[i].length; j++) {
@@ -180,6 +185,6 @@ public class GeographyMap {
             }
             System.out.println();
         }
-        System.out.printf("%10.2f", grid[0][0]);
+        System.out.printf("%.2f", grid[0][0]);
     }
 }
