@@ -1,8 +1,6 @@
 package model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -10,6 +8,8 @@ import java.util.Map;
  */
 public class GeographyMap {
     private double[][] gridHeights;
+    private int[]
+
     private int minX;
     private int minY;
     private int maxX;
@@ -107,6 +107,7 @@ public class GeographyMap {
         x = start.x;
         y = start.y;
         err = el / 2;
+
         int sizeIndex = (x - minX) / gridStep;
         int gridY = (y - minY) / gridStep + 1;
         columnSizes[sizeIndex] = Math.max(gridY, columnSizes[sizeIndex]);
