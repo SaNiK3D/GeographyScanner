@@ -7,8 +7,7 @@ import java.util.Map;
  * Created by User on 23.04.2017
  */
 public class GeographyMap {
-    private double[][] gridHeights;
-    private int[]
+    private Grid grid;
 
     private int minX;
     private int minY;
@@ -40,6 +39,7 @@ public class GeographyMap {
 
     private void makeGrid(Coordinate[] borderCoordinates) {
         int sizeX = ((maxX - minX) / gridStep) + 1;
+        grid = new Grid(sizeX);
 
         int[] columnGridSizes = new int[sizeX];
         Coordinate startLineCoordinate;
@@ -55,9 +55,8 @@ public class GeographyMap {
             calculateSizesBetweenStartAndEndCoordinate(startLineCoordinate, endLineCoordinate, columnGridSizes);
         }
 
-        gridHeights = new double[sizeX][];
         for (int i = 0; i < columnGridSizes.length; i++) {
-            gridHeights[i] = new double[columnGridSizes[i]];
+            grid.setHeightAt(i, columnGridSizes[i]);
         }
 
     }
@@ -134,7 +133,7 @@ public class GeographyMap {
         return x > 0 ? 1 : -1;
     }
 
-    public double[][] interpolate(Function2Args[] functions) {
+    public Grid interpolate(Function2Args[] functions) {
         Function2Args functionsInCells[] = new Function2Args[functions.length];
         Map<Coordinate, Double> functionMap = new HashMap<Coordinate, Double>();
         for (int i = 0; i < functions.length; i++) {
@@ -146,16 +145,16 @@ public class GeographyMap {
             Coordinate c = new Coordinate(gridX, gridY);
             functionMap.put(c, functions[i].value);
         }
-        for (int i = 0; i < gridHeights.length; i++) {
-            for (int j = 0; j < gridHeights[i].length; j++) {
+        for (int i = 0; i < grid.getHeights().length; i++) {
+            for (int j = 0; j < grid.getHeights()[i].length; j++) {
                 if (functionMap.containsKey(new Coordinate(i, j)))
-                    gridHeights[i][j] = functionMap.get(new Coordinate(i, j));
+                    grid.getHeights()[i][j] = functionMap.get(new Coordinate(i, j));
                 else
-                    gridHeights[i][j] = interpolateAtXY(i, j, functionsInCells);
+                    grid.getHeights()[i][j] = interpolateAtXY(i, j, functionsInCells);
             }
         }
 
-        return gridHeights;
+        return grid;
     }
 
     private double interpolateAtXY(int x, int y, Function2Args[] functions) {
