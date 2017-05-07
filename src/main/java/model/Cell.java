@@ -4,20 +4,25 @@ package model;
  * Created by User on 07.05.2017
  */
 public class Cell {
-    double value;
-    boolean isActive;
+    private double value;
+    private boolean isActive;
 
     public Cell(double value) {
         isActive = true;
         this.value = value;
     }
 
+    public Cell() {
+        isActive = false;
+        value = 0d;
+    }
+
     public void setValue(double value) {
         this.value = value;
     }
 
-    public void setActive(boolean active) {
-        isActive = active;
+    public void setActive() {
+        isActive = true;
     }
 
     public double getValue() {

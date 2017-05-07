@@ -1,24 +1,27 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by User on 06.05.2017
  */
 public class Grid {
-    private List<Cell>[] heights;
+    private Cell[][] heights;
 
-    public Grid(int sizeX) {
+    public Grid(int width, int height) {
         //noinspection unchecked
-        heights = new List[sizeX];
+        heights = new Cell[width][height];
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                heights[i][j] = new Cell();
+            }
+        }
     }
 
-    public List<Cell>[] getHeights() {
+    public Cell[][] getHeights() {
         return heights;
     }
 
-    public void setHeightAt(int index, int columnSize){
-        heights[index] = new ArrayList<>(columnSize);
+    public void setHeight(int column, int row, double value){
+        heights[column][row].setValue(value);
     }
 }
