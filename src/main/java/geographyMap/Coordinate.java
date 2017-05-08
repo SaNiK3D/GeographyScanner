@@ -1,4 +1,4 @@
-package model;
+package geographyMap;
 
 /**
  * Created by User on 23.04.2017

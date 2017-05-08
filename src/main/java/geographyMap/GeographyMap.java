@@ -1,4 +1,4 @@
-package model;
+package geographyMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -72,7 +72,7 @@ public class GeographyMap {
 	 */
         incy = sign(dy);
     /*
-	 * Аналогично. Если рисуем отрезок снизу вверх -
+     * Аналогично. Если рисуем отрезок снизу вверх -
 	 * это будет отрицательный сдвиг для y (иначе - положительный).
 	 */
 
@@ -133,6 +133,7 @@ public class GeographyMap {
     public Grid interpolate(Function2Args[] functions) {
         Function2Args functionsInCells[] = new Function2Args[functions.length];
         Map<Coordinate, Double> functionMap = new HashMap<>();
+        Map<Coordinate, Integer> functionCount = new HashMap<>();
         for (int i = 0; i < functions.length; i++) {
             int gridX = (functions[i].coordinate.x - minX) / gridStep;
             int gridY = (functions[i].coordinate.y - minY) / gridStep + 1;
@@ -140,7 +141,15 @@ public class GeographyMap {
             functionsInCells[i] = new Function2Args(gridX, gridY, functions[i].value);
 
             Coordinate c = new Coordinate(gridX, gridY);
-            functionMap.put(c, functions[i].value);
+            if(!functionCount.containsKey(c)) {
+                functionMap.put(c, functions[i].value);
+                functionCount.put(c, 1);
+            } else {
+                int count = functionCount.get(c);
+                count++;
+                functionMap.put(c, (functions[i].value + functionMap.get(c)) / count );
+                functionCount.put(c, count);
+            }
         }
         for (int i = 0; i < grid.getHeights().length; i++) {
             for (int j = 0; j < grid.getHeights()[i].length; j++) {
@@ -158,7 +167,7 @@ public class GeographyMap {
         double numerator = 0d;
         double denominator = 0d;
         for (Function2Args f : functions) {
-            double weight = 1 / Math.pow(distance(x, y, f.coordinate.x, f.coordinate.y), 4) ;
+            double weight = 1 / Math.pow(distance(x, y, f.coordinate.x, f.coordinate.y), 4);
 
             denominator += weight;
             numerator += weight * f.value;
