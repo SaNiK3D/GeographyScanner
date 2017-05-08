@@ -2,6 +2,7 @@ package geographyMap.controller;
 
 import geographyMap.Coordinate;
 import geographyMap.Function2Args;
+import geographyMap.Grid;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -61,5 +62,9 @@ class CoordinatesLoader {//todo: сделать проверку на корре
         int value = readNextInt(tok);
 
         return new Function2Args(x, y, value);
+    }
+
+    static void saveGridToFile(Grid grid, String filePath) {//todo
+
     }
 }

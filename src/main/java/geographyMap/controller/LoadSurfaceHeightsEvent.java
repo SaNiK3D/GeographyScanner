@@ -7,9 +7,9 @@ import eventbus.Event;
  */
 class LoadSurfaceHeightsEvent implements Event {
     private final String filePath;
-    private final LoadFileCallback callback;
+    private final AbstractCallback callback;
 
-    LoadSurfaceHeightsEvent(String filePath, LoadFileCallback callback) {
+    LoadSurfaceHeightsEvent(String filePath, AbstractCallback callback) {
         this.filePath = filePath;
         this.callback = callback;
     }
@@ -18,7 +18,7 @@ class LoadSurfaceHeightsEvent implements Event {
         return filePath;
     }
 
-    LoadFileCallback getCallback() {
+    AbstractCallback getCallback() {
         return callback;
     }
 }

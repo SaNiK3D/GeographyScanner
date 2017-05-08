@@ -8,5 +8,5 @@ import geographyMap.Grid;
  */
 abstract class InterpolateCallback implements Callback {
 
-    abstract void onSucess(Grid grid);
+    abstract void onSuccess(Grid grid);
 }
