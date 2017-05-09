@@ -18,7 +18,9 @@ public class GeographyController {
 
     private Thread interpolationThread;
 
-    public GeographyController(EventBus eventBus) {
+    public GeographyController(EventBus eventBus, GeographyMap geographyMap) {
+        this.geographyMap = geographyMap;
+
         eventBus.addHandler(LoadBordersCoordinatesEvent.class, this::loadBorderCoordinates);
         eventBus.addHandler(LoadSurfaceHeightsEvent.class, this::loadSurfaceHeights);
         eventBus.addHandler(InterpolateEvent.class, this::startInterpolation);
@@ -29,7 +31,7 @@ public class GeographyController {
     private void loadSurfaceHeights(LoadSurfaceHeightsEvent event){
         try {
             surfaceHeights = CoordinatesLoader.getHeights(event.getFilePath());
-            event.getCallback().onSuccess();
+            event.getCallback().onSuccess(surfaceHeights);
         } catch (IOException e) {
             event.getCallback().onFail(new RuntimeException(e));
         }
@@ -38,7 +40,7 @@ public class GeographyController {
     private void loadBorderCoordinates(LoadBordersCoordinatesEvent event){
         try {
             borderCoordinates = CoordinatesLoader.getBorderCoordinates(event.getFilePath());
-            event.getCallback().onSuccess();
+            event.getCallback().onSuccess(borderCoordinates);
         } catch (IOException e) {
             event.getCallback().onFail(new RuntimeException(e));
         }
@@ -46,8 +48,9 @@ public class GeographyController {
 
     private void startInterpolation(InterpolateEvent event){
         interpolationThread = new Thread(() -> {
-            geographyMap = new GeographyMap(borderCoordinates, event.getGridStep());
             Grid grid = geographyMap.interpolate(surfaceHeights);
+            geographyMap.setBorders(borderCoordinates, event.getGridStep());
+            geographyMap.interpolate(surfaceHeights);
             event.getCallback().onSuccess(grid);
         });
 
@@ -63,7 +66,11 @@ public class GeographyController {
     }
 
     private void saveGrid(SaveGridEvent event){
-        CoordinatesLoader.saveGridToFile(event.getGrid(), event.getFilePath());
+        try {
+            CoordinatesLoader.saveGridToFile(event.getGrid(), event.getFilePath());
+        } catch (IOException e) {
+            event.getCallback().onFail(new RuntimeException(e));
+        }
         event.getCallback().onSuccess();
     }
 }

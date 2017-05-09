@@ -7,9 +7,9 @@ import eventbus.Event;
  */
 class LoadBordersCoordinatesEvent implements Event {
     private final String filePath;
-    private final AbstractCallback callback;
+    private final LoadBordersCoordinatesCallback callback;
 
-    LoadBordersCoordinatesEvent(String filePath, AbstractCallback callback) {
+    LoadBordersCoordinatesEvent(String filePath, LoadBordersCoordinatesCallback callback) {
         this.filePath = filePath;
         this.callback = callback;
     }
@@ -18,7 +18,7 @@ class LoadBordersCoordinatesEvent implements Event {
         return filePath;
     }
 
-    AbstractCallback getCallback() {
+    LoadBordersCoordinatesCallback getCallback() {
         return callback;
     }
 }

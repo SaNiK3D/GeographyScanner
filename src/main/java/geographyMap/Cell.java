@@ -4,20 +4,20 @@ package geographyMap;
  * Created by User on 07.05.2017
  */
 public class Cell {
-    private double value;
+    private int value;
     private boolean isActive;
 
-    public Cell(double value) {
+    public Cell(int value) {
         isActive = true;
         this.value = value;
     }
 
     public Cell() {
         isActive = false;
-        value = 0d;
+        value = 0;
     }
 
-    public void setValue(double value) {
+    public void setValue(int value) {
         this.value = value;
     }
 
@@ -25,7 +25,7 @@ public class Cell {
         isActive = true;
     }
 
-    public double getValue() {
+    public int getValue() {
         return value;
     }
 

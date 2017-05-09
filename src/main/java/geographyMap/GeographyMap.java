@@ -1,7 +1,6 @@
 package geographyMap;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by User on 23.04.2017
@@ -15,13 +14,15 @@ public class GeographyMap {
     private int maxY;
     private int gridStep;
 
-    public GeographyMap(Coordinate[] borderCoordinates, int gridStep) {
+    public GeographyMap() {
+    }
+
+    public void setBorders(Coordinate[] borderCoordinates, int gridStep){
         if (borderCoordinates.length < 3)
             throw new IllegalArgumentException("Количество координат границ должно быть как минимум 3");
         findMinAndMaxCoordinates(borderCoordinates);
         this.gridStep = gridStep;
         makeGrid(borderCoordinates);
-
     }
 
     private void findMinAndMaxCoordinates(Coordinate[] borderCoordinates) {
@@ -40,90 +41,123 @@ public class GeographyMap {
     private void makeGrid(Coordinate[] borderCoordinates) {
         int width = ((maxX - minX) / gridStep) + 1;
         int height = ((maxY - minY) / gridStep) + 1;
-        grid = new Grid(width, height);
-
-        Coordinate startLineCoordinate;
-        Coordinate endLineCoordinate;
-        for (int i = 0; i < borderCoordinates.length; i++) {
-            startLineCoordinate = borderCoordinates[i];
-            if (i == borderCoordinates.length - 1) {
-                endLineCoordinate = borderCoordinates[0];
-            } else {
-                endLineCoordinate = borderCoordinates[i + 1];
-            }
-
-            calculateSizesBetweenStartAndEndCoordinate(startLineCoordinate, endLineCoordinate);
+        grid = new Grid(width, height, minX, minY, gridStep);
+        //noinspection unchecked
+        List<Integer>[] yCoordinates = new List[width];
+        for (int i = 0; i < width; i++) {
+            yCoordinates[i] = new ArrayList<>();
         }
-
-
+        calculateYCoordinates(borderCoordinates, yCoordinates);
+        activateCells(yCoordinates);
     }
 
-    private void calculateSizesBetweenStartAndEndCoordinate(Coordinate start, Coordinate end) {
+    private void activateCells(List<Integer>[] yCoordinates) {
+        for (int i = 0; i < yCoordinates.length; i++) {
+            yCoordinates[i].sort(Comparator.comparingInt(o -> o));
+            for (int j = 0; j < yCoordinates.length; j += 2) {
+                if(j + 1 < yCoordinates.length)
+                    activateCellsBetween(i, yCoordinates[i].get(j), yCoordinates[i].get(j + 1));
+                else
+                    activateCellsBetween(i, yCoordinates[i].get(j), yCoordinates[i].get(j));
+            }
+        }
+    }
+
+    private void activateCellsBetween(int column, int start, int end) {
+        for (int i = start; i < end + 1; i++) {
+            grid.getHeights()[column][i].setActive();
+        }
+    }
+
+    private void calculateYCoordinates(Coordinate[] borderCoordinates, List<Integer>[] yCoordinates) {
         int x, y, dx, dy, incx, incy, pdx, pdy, es, el, err;
+        Coordinate current;
+        Coordinate next;
+        Coordinate previous;
+        for (int i = 0; i < borderCoordinates.length; i++) {
+            current = borderCoordinates[i];
+            if (i == borderCoordinates.length - 1)
+                next = borderCoordinates[0];
+            else
+                next = borderCoordinates[i + 1];
 
-        dx = end.x - start.x;//проекция на ось икс
-        dy = end.y - start.y;//проекция на ось игрек
+            if(i == 0)
+                previous = borderCoordinates[borderCoordinates.length - 1];
+            else
+                previous = borderCoordinates[i - 1];
 
-        incx = sign(dx);
+            dx = next.x - current.x;//проекция на ось икс
+            dy = next.y - current.y;//проекция на ось игрек
+
+            incx = sign(dx);
     /*
      * Определяем, в какую сторону нужно будет сдвигаться. Если dx < 0, т.е. отрезок идёт
 	 * справа налево по иксу, то incx будет равен -1.
 	 * Это будет использоваться в цикле постороения.
 	 */
-        incy = sign(dy);
+            incy = sign(dy);
     /*
      * Аналогично. Если рисуем отрезок снизу вверх -
 	 * это будет отрицательный сдвиг для y (иначе - положительный).
 	 */
 
-        if (dx < 0) dx = -dx;//далее мы будем сравнивать: "if (dx < dy)"
-        if (dy < 0) dy = -dy;//поэтому необходимо сделать dx = |dx|; dy = |dy|
+            if (dx < 0) dx = -dx;//далее мы будем сравнивать: "if (dx < dy)"
+            if (dy < 0) dy = -dy;//поэтому необходимо сделать dx = |dx|; dy = |dy|
 
-        if (dx > dy)
-        //определяем наклон отрезка:
-        {
+            if (dx > dy)
+            //определяем наклон отрезка:
+            {
 	 /*
 	  * Если dx > dy, то значит отрезок "вытянут" вдоль оси икс, т.е. он скорее длинный, чем высокий.
 	  * Значит в цикле нужно будет идти по икс (строчка el = dx;), значит "протягивать" прямую по иксу
 	  * надо в соответствии с тем, слева направо и справа налево она идёт (pdx = incx;), при этом
 	  * по y сдвиг такой отсутствует.
 	  */
-            pdx = incx;
-            pdy = 0;
-            es = dy;
-            el = dx;
-        } else//случай, когда прямая скорее "высокая", чем длинная, т.е. вытянута по оси y
-        {
-            pdx = 0;
-            pdy = incy;
-            es = dx;
-            el = dy;//тогда в цикле будем двигаться по y
-        }
-
-        x = start.x;
-        y = start.y;
-        err = el / 2;
-
-        int gridX = (x - minX) / gridStep;
-        int gridY = (y - minY) / gridStep + 1;
-        grid.getHeights()[gridX][gridY].setActive();
-
-        for (int t = 0; t < el; t++)//идём по всем точкам, начиная со второй и до последней
-        {
-            err -= es;
-            if (err < 0) {
-                err += el;
-                x += incx;//сдвинуть прямую (сместить вверх или вниз, если цикл проходит по иксам)
-                y += incy;//или сместить влево-вправо, если цикл проходит по y
-            } else {
-                x += pdx;//продолжить тянуть прямую дальше, т.е. сдвинуть влево или вправо, если
-                y += pdy;//цикл идёт по иксу; сдвинуть вверх или вниз, если по y
+                pdx = incx;
+                pdy = 0;
+                es = dy;
+                el = dx;
+            } else//случай, когда прямая скорее "высокая", чем длинная, т.е. вытянута по оси y
+            {
+                pdx = 0;
+                pdy = incy;
+                es = dx;
+                el = dy;//тогда в цикле будем двигаться по y
             }
 
-            gridX = (x - minX) / gridStep;
-            gridY = (y - minY) / gridStep + 1;
-            grid.getHeights()[gridX][gridY].setActive();
+            x = current.x;
+            y = current.y;
+            err = el / 2;
+
+            int gridX = (x - minX) / gridStep;
+            int gridY = (y - minY) / gridStep + 1;
+            if(sign(previous.x - gridX) == sign(next.x - gridX))
+                yCoordinates[gridX].add(gridY);
+            yCoordinates[gridX].add(gridY);
+
+            int currentY = gridY;
+
+            for (int t = 0; t < el; t++)//идём по всем точкам, начиная со второй и до последней
+            {
+                err -= es;
+                if (err < 0) {
+                    err += el;
+                    x += incx;//сдвинуть прямую (сместить вверх или вниз, если цикл проходит по иксам)
+                    y += incy;//или сместить влево-вправо, если цикл проходит по y
+                } else {
+                    x += pdx;//продолжить тянуть прямую дальше, т.е. сдвинуть влево или вправо, если
+                    y += pdy;//цикл идёт по иксу; сдвинуть вверх или вниз, если по y
+                }
+
+                gridX = (x - minX) / gridStep;
+                gridY = (y - minY) / gridStep + 1;
+                if(gridY != currentY) {
+                    yCoordinates[gridX].add(gridY);
+                    currentY = gridY;
+                }
+            }
         }
+
     }
 
     private int sign(int x) {
@@ -132,7 +166,7 @@ public class GeographyMap {
 
     public Grid interpolate(Function2Args[] functions) {
         Function2Args functionsInCells[] = new Function2Args[functions.length];
-        Map<Coordinate, Double> functionMap = new HashMap<>();
+        Map<Coordinate, Integer> functionMap = new HashMap<>();
         Map<Coordinate, Integer> functionCount = new HashMap<>();
         for (int i = 0; i < functions.length; i++) {
             int gridX = (functions[i].coordinate.x - minX) / gridStep;
@@ -163,7 +197,7 @@ public class GeographyMap {
         return grid;
     }
 
-    private double interpolateAtXY(int x, int y, Function2Args[] functions) {
+    private int interpolateAtXY(int x, int y, Function2Args[] functions) {
         double numerator = 0d;
         double denominator = 0d;
         for (Function2Args f : functions) {
@@ -173,7 +207,7 @@ public class GeographyMap {
             numerator += weight * f.value;
         }
 
-        return numerator / denominator;
+        return (int) (numerator / denominator);
     }
 
     private double distance(int x1, int y1, int x2, int y2) {
