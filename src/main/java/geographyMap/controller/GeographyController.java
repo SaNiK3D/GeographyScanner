@@ -48,9 +48,8 @@ public class GeographyController {
 
     private void startInterpolation(InterpolateEvent event){
         interpolationThread = new Thread(() -> {
-            Grid grid = geographyMap.interpolate(surfaceHeights);
             geographyMap.setBorders(borderCoordinates, event.getGridStep());
-            geographyMap.interpolate(surfaceHeights);
+            Grid grid = geographyMap.interpolate(surfaceHeights);
             event.getCallback().onSuccess(grid);
         });
 

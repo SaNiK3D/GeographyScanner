@@ -46,6 +46,7 @@ public class GeographyMap {
         List<Integer>[] yCoordinates = new List[width];
         for (int i = 0; i < width; i++) {
             yCoordinates[i] = new ArrayList<>();
+
         }
         calculateYCoordinates(borderCoordinates, yCoordinates);
         activateCells(yCoordinates);
@@ -54,8 +55,8 @@ public class GeographyMap {
     private void activateCells(List<Integer>[] yCoordinates) {
         for (int i = 0; i < yCoordinates.length; i++) {
             yCoordinates[i].sort(Comparator.comparingInt(o -> o));
-            for (int j = 0; j < yCoordinates.length; j += 2) {
-                if(j + 1 < yCoordinates.length)
+            for (int j = 0; j < yCoordinates[i].size(); j += 2) {
+                if(j + 1 < yCoordinates[i].size())
                     activateCellsBetween(i, yCoordinates[i].get(j), yCoordinates[i].get(j + 1));
                 else
                     activateCellsBetween(i, yCoordinates[i].get(j), yCoordinates[i].get(j));
@@ -130,12 +131,13 @@ public class GeographyMap {
             err = el / 2;
 
             int gridX = (x - minX) / gridStep;
-            int gridY = (y - minY) / gridStep + 1;
+            int gridY = (y - minY) / gridStep;
             if(sign(previous.x - gridX) == sign(next.x - gridX))
                 yCoordinates[gridX].add(gridY);
             yCoordinates[gridX].add(gridY);
 
             int currentY = gridY;
+            int currentX = gridX;
 
             for (int t = 0; t < el; t++)//идём по всем точкам, начиная со второй и до последней
             {
@@ -150,11 +152,12 @@ public class GeographyMap {
                 }
 
                 gridX = (x - minX) / gridStep;
-                gridY = (y - minY) / gridStep + 1;
-                if(gridY != currentY) {
+                gridY = (y - minY) / gridStep;
+                if(gridY != currentY || gridX != currentX) {
                     yCoordinates[gridX].add(gridY);
-                    currentY = gridY;
                 }
+                currentX = gridX;
+                currentY = gridY;
             }
         }
 
@@ -170,7 +173,7 @@ public class GeographyMap {
         Map<Coordinate, Integer> functionCount = new HashMap<>();
         for (int i = 0; i < functions.length; i++) {
             int gridX = (functions[i].coordinate.x - minX) / gridStep;
-            int gridY = (functions[i].coordinate.y - minY) / gridStep + 1;
+            int gridY = (functions[i].coordinate.y - minY) / gridStep;
 
             functionsInCells[i] = new Function2Args(gridX, gridY, functions[i].value);
 
@@ -214,7 +217,4 @@ public class GeographyMap {
         return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
     }
 
-    public static void main(String[] args) {
-
-    }
 }
