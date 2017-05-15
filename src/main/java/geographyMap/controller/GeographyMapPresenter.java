@@ -19,7 +19,7 @@ public class GeographyMapPresenter {
         eventBus.post(new LoadBordersCoordinatesEvent(filePath, new LoadBordersCoordinatesCallback() {
             @Override
             void onSuccess(Coordinate[] borderCoordinates) {
-
+                view.setBorderCoordinates(borderCoordinates);
             }
 
             @Override
@@ -30,10 +30,34 @@ public class GeographyMapPresenter {
     }
 
     public void loadSurfaceHeights(String filePath){
+        eventBus.post(new LoadSurfaceHeightsEvent(filePath, new LoadSurfaceHeightsCallback() {
+            @Override
+            void onSuccess(Function2Args[] heights) {
+                view.setHeights(heights);
+            }
 
+            @Override
+            public void onFail(RuntimeException e) {
+
+            }
+        }));
     }
 
-    public void startInterpolation(){
+    public void startInterpolation(int gridStep){
+        eventBus.post(new InterpolateEvent(gridStep, new InterpolateCallback() {
+            @Override
+            void onSuccess(Grid grid, Coordinate[] borderCoordinates) {
+                view.stopInterpolation();
+                view.drawMap(grid, borderCoordinates);
+                view.saveGrid(grid);
+            }
 
+            @Override
+            public void onFail(RuntimeException e) {
+                view.stopInterpolation();
+            }
+        }));
+
+        view.startInterpolation();
     }
 }

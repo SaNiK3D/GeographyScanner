@@ -41,4 +41,24 @@ public class Grid {
     public int getStep() {
         return step;
     }
+
+    public int getMaxHeight(){
+        int maxHeight = Integer.MIN_VALUE;
+        for (int i = 0; i < heights.length; i++) {
+            for (int j = 0; j < heights[i].length; j++) {
+                maxHeight = Math.max(heights[i][j].getValue(), maxHeight);
+            }
+        }
+        return maxHeight;
+    }
+
+    public int getMinHeight(){
+        int minHeight = Integer.MAX_VALUE;
+        for (int i = 0; i < heights.length; i++) {
+            for (int j = 0; j < heights[i].length; j++) {
+                minHeight = Math.min(heights[i][j].getValue(), minHeight);
+            }
+        }
+        return minHeight;
+    }
 }

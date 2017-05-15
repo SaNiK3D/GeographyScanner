@@ -1,6 +1,7 @@
 package geographyMap.controller;
 
 import eventbus.Callback;
+import geographyMap.Coordinate;
 import geographyMap.Grid;
 
 /**
@@ -8,5 +9,5 @@ import geographyMap.Grid;
  */
 abstract class InterpolateCallback implements Callback {
 
-    abstract void onSuccess(Grid grid);
+    abstract void onSuccess(Grid grid, Coordinate[] borderCoordinates);
 }

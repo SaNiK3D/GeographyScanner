@@ -4,20 +4,27 @@ import geographyMap.controller.GeographyMapPresenter;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.AbstractTableModel;
 import java.awt.*;
+import java.awt.geom.GeneralPath;
+import java.awt.image.BufferedImage;
 
 /**
  * Created by User on 09.05.2017
  */
 public class GeographyMapView extends JFrame {
-    public static final String START = "Начать построение карты";
+    private static final String START = "Начать построение карты";
+    private static final String STOP = "Прервать интерполяцию";
     private GeographyMapPresenter presenter;
+    private boolean isHeightsLoaded = false;
+    private boolean isBordersLoaded = false;
+    private boolean isInterpolation = false;
 
-    private JMenuBar menuBar;
     private JButton actionButton;
     private JSpinner stepSpinner;
-    private JTable bordersTable;
-    private JTable heightsTable;
+    private JPanel canvas;
+    private ShowingTableModel borderTableModel;
+    private ShowingTableModel heightsTableModel;
 
     public GeographyMapView() {
         JPanel rootPanel = new JPanel(new GridBagLayout());
@@ -54,14 +61,21 @@ public class GeographyMapView extends JFrame {
         JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
 
-        JButton actionButton = new JButton(START);
+        actionButton = new JButton(START);
         actionButton.setEnabled(false);
         actionButton.addActionListener(e -> {
-            //presenter.//todo
+            presenter.startInterpolation((Integer) stepSpinner.getValue());
         });
         bottomPanel.add(actionButton);
 
         return bottomPanel;
+    }
+
+    private void changeButtonText() {
+        if (isInterpolation)
+            actionButton.setText(STOP);
+        else
+            actionButton.setText(START);
     }
 
     private JPanel createCentralPanel() {
@@ -71,7 +85,7 @@ public class GeographyMapView extends JFrame {
         c.weighty = 1;
         c.fill = GridBagConstraints.BOTH;
 
-        JPanel canvas = new JPanel();
+        canvas = new JPanel();
         JScrollPane scrollPane = new JScrollPane(canvas);
         scrollPane.setPreferredSize(new Dimension(400, 400));
         centralPane.add(scrollPane, c);
@@ -83,17 +97,7 @@ public class GeographyMapView extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         JMenu menu = new JMenu("Загрузить файл...");
 
-        JMenuItem item = new JMenuItem("Границ");
-        item.addActionListener(e -> {
-            JFileChooser fileChooser = getCsvFileChooser();
-            String filePath = getFilePathFrom(fileChooser);
-            if (filePath != null) {
-                presenter.loadBorders(filePath);
-            }
-        });
-        menu.add(item);
-
-        item = new JMenuItem("Высот");
+        JMenuItem item = new JMenuItem("Высот");
         item.addActionListener(e -> {
             JFileChooser fileChooser = getCsvFileChooser();
             String filePath = getFilePathFrom(fileChooser);
@@ -101,6 +105,17 @@ public class GeographyMapView extends JFrame {
                 presenter.loadSurfaceHeights(filePath);
             }
         });
+        menu.add(item);
+
+        item = new JMenuItem("Границ");
+        item.addActionListener(e -> {
+            JFileChooser fileChooser = getCsvFileChooser();
+            String filePath = getFilePathFrom(fileChooser);
+            if (filePath != null) {
+                presenter.loadBorders(filePath);
+            }
+        });
+
         menu.add(item);
         menuBar.add(menu);
 
@@ -148,7 +163,8 @@ public class GeographyMapView extends JFrame {
         heightsPanel.add(heightsLabel);
 
         String[] columnNames = new String[]{"X", "Y", "Высота"};
-        heightsTable = new JTable(new String[0][0], columnNames);
+        heightsTableModel = new ShowingTableModel(new String[0][0], columnNames);
+        JTable heightsTable = new JTable(heightsTableModel);
         JScrollPane scrollPane = new JScrollPane(heightsTable);
         heightsTable.setFillsViewportHeight(true);
         heightsPanel.add(scrollPane);
@@ -164,7 +180,8 @@ public class GeographyMapView extends JFrame {
         bordersPanel.add(bordersLabel);
 
         String[] columnNames = new String[]{"X", "Y"};
-        bordersTable = new JTable(new String[0][0], columnNames);
+        borderTableModel = new ShowingTableModel(new String[0][0], columnNames);
+        JTable bordersTable = new JTable(borderTableModel);
         JScrollPane scrollPane = new JScrollPane(bordersTable);
         bordersTable.setFillsViewportHeight(true);
         bordersPanel.add(scrollPane);
@@ -190,4 +207,135 @@ public class GeographyMapView extends JFrame {
         this.presenter = presenter;
     }
 
+    public void setBorderCoordinates(Coordinate[] borderCoordinates) {
+        String[][] rowData = new String[borderCoordinates.length][2];
+        for (int i = 0; i < borderCoordinates.length; i++) {
+            rowData[i][0] = String.valueOf(borderCoordinates[i].x);
+            rowData[i][1] = String.valueOf(borderCoordinates[i].y);
+        }
+
+        borderTableModel.setRowData(rowData);
+        isBordersLoaded = true;
+        checkActionButton();
+    }
+
+    private void checkActionButton() {
+        if (isHeightsLoaded && isBordersLoaded) {
+            actionButton.setEnabled(true);
+        }
+    }
+
+    public void setHeights(Function2Args[] heights) {
+        String[][] rowData = new String[heights.length][3];
+        for (int i = 0; i < heights.length; i++) {
+            rowData[i][0] = String.valueOf(heights[i].coordinate.x);
+            rowData[i][1] = String.valueOf(heights[i].coordinate.y);
+            rowData[i][2] = String.valueOf(heights[i].value);
+        }
+
+        heightsTableModel.setRowData(rowData);
+        isHeightsLoaded = true;
+        checkActionButton();
+    }
+
+    public void drawMap(Grid grid, Coordinate[] borderCoordinates) {
+        int width = grid.getHeights().length * grid.getStep() + grid.getMinX();
+        int height = grid.getHeights()[0].length * grid.getStep() + grid.getMinY();
+        BufferedImage basicImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        int maxH = grid.getMaxHeight();
+        int minH = grid.getMinHeight();
+        int dH = (maxH - minH) / 2;
+        Graphics2D g2d = basicImg.createGraphics();
+        for (int i = 0; i < grid.getHeights().length; i++) {
+            for (int j = 0; j < grid.getHeights()[i].length; j++) {
+                if(grid.getHeights()[i][j].isActive()){
+                    Color color;
+                    float red, green, blue;
+                    if(grid.getHeights()[i][j].getValue() < dH){
+                        green = (float) grid.getHeights()[i][j].getValue() / dH;
+                        red = 1.0f - green;
+                        blue = 0f;
+                    } else {
+                        red = 0.0f;
+                        blue = (float) (grid.getHeights()[i][j].getValue() - (dH - 1)) / dH;
+                        green = 1.0f - blue;
+                    }
+
+                    color = new Color(red, green, blue);
+                    g2d.setColor(color);
+                    g2d.fillRect(grid.getMinX() + i * grid.getStep(), grid.getMinY() + j * grid.getStep(), grid.getStep(), grid.getStep());
+                }
+            }
+        }
+
+        Image img = canvas.createImage(width, height);
+        Graphics2D g = (Graphics2D) img.getGraphics();
+        TexturePaint paint = new TexturePaint(basicImg, new Rectangle(width, height));
+        g.setPaint(paint);
+        GeneralPath map = new GeneralPath();
+        map.moveTo(borderCoordinates[0].x, borderCoordinates[1].y);
+        for (int i = 1; i < borderCoordinates.length; i++) {
+            map.lineTo(borderCoordinates[i].x, borderCoordinates[i].y);
+        }
+        map.closePath();
+        g.fill(map);
+
+        g.dispose();
+        g2d.dispose();
+    }
+
+
+    public void stopInterpolation() {
+        isInterpolation = false;
+        changeButtonText();
+    }
+
+    public void startInterpolation() {
+        isInterpolation = true;
+        changeButtonText();
+    }
+
+    public void saveGrid(Grid grid) {
+
+    }
+
+    private class ShowingTableModel extends AbstractTableModel {
+        private String[][] rowData;
+        private String[] columnNames;
+
+        private ShowingTableModel(String[][] rowData, String[] columnNames) {
+            this.rowData = rowData;
+            this.columnNames = columnNames;
+        }
+
+        public String getColumnName(int column) {
+            return columnNames[column];
+        }
+
+        public int getRowCount() {
+            return rowData.length;
+        }
+
+        public int getColumnCount() {
+            return columnNames.length;
+        }
+
+        public Object getValueAt(int row, int col) {
+            return rowData[row][col];
+        }
+
+        public boolean isCellEditable(int row, int column) {
+            return false;
+        }
+
+        public void setValueAt(Object value, int row, int col) {
+            rowData[row][col] = (String) value;
+            fireTableCellUpdated(row, col);
+        }
+
+        private void setRowData(String[][] newRowData) {
+            rowData = newRowData;
+            fireTableDataChanged();
+        }
+    }
 }
