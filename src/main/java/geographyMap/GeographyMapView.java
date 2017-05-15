@@ -3,6 +3,8 @@ package geographyMap;
 import geographyMap.controller.GeographyMapPresenter;
 
 import javax.swing.*;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
@@ -37,9 +39,6 @@ public class GeographyMapView extends JFrame {
         c.weightx = 0.5;
         c.insets = new Insets(5, 10, 5, 10);
         rootPanel.add(leftPanel, c);
-
-        //JPanel rightPanel = createRightPanel();//todo
-        //rootPanel.add(rightPanel, BorderLayout.EAST);
 
         JPanel centerPanel = createCentralPanel();
         c.gridx = 1;
@@ -119,7 +118,25 @@ public class GeographyMapView extends JFrame {
         menu.add(item);
         menuBar.add(menu);
 
+        item = new JMenuItem("Сохранить файл...");
+        item.addActionListener(e -> {
+            JFileChooser fileChooser = getCsvFileChooser();
+            String filePath = getSavePath(fileChooser);
+            if(filePath != null){
+                presenter.saveGridToFile(filePath);
+            }
+        });
+        menuBar.add(item);
+
         return menuBar;
+    }
+
+    private String getSavePath(JFileChooser fileChooser) {
+        int val = fileChooser.showSaveDialog(GeographyMapView.this);
+        if(val == JFileChooser.APPROVE_OPTION){
+            return fileChooser.getSelectedFile().getAbsolutePath();
+        }
+        return null;
     }
 
     private String getFilePathFrom(JFileChooser fileChooser) {
@@ -133,6 +150,7 @@ public class GeographyMapView extends JFrame {
 
     private JFileChooser getCsvFileChooser() {
         JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setAcceptAllFileFilterUsed(false);
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fileChooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
         return fileChooser;
@@ -248,7 +266,7 @@ public class GeographyMapView extends JFrame {
         Graphics2D g2d = basicImg.createGraphics();
         for (int i = 0; i < grid.getHeights().length; i++) {
             for (int j = 0; j < grid.getHeights()[i].length; j++) {
-                //if(grid.getHeights()[i][j].isActive()){
+                if(grid.getHeights()[i][j].isActive()){
                     Color color;
                     float red, green, blue;
                     if(grid.getHeights()[i][j].getValue() < dH){
@@ -264,7 +282,7 @@ public class GeographyMapView extends JFrame {
                     color = new Color(red, green, blue);
                     g2d.setColor(color);
                     g2d.fillRect(grid.getMinX() + i * grid.getStep(), grid.getMinY() + j * grid.getStep(), grid.getStep(), grid.getStep());
-                //}
+                }
             }
         }
 

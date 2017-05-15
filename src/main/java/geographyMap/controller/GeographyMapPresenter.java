@@ -60,4 +60,32 @@ public class GeographyMapPresenter {
 
         view.startInterpolation();
     }
+
+    public void interruptInterpolation(){
+        eventBus.post(new InterruptInterpolationEvent(new AbstractCallback() {
+            @Override
+            void onSuccess() {
+
+            }
+
+            @Override
+            public void onFail(RuntimeException e) {
+
+            }
+        }));
+    }
+
+    public void saveGridToFile(String filePath) {
+        eventBus.post(new SaveGridEvent(filePath, new AbstractCallback() {
+            @Override
+            void onSuccess() {
+
+            }
+
+            @Override
+            public void onFail(RuntimeException e) {
+
+            }
+        }));
+    }
 }

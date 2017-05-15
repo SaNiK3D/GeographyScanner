@@ -7,6 +7,7 @@ import geographyMap.Grid;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by User on 08.05.2017
@@ -70,20 +71,20 @@ class CoordinatesLoader {//todo: сделать проверку на корре
     }
 
     static void saveGridToFile(Grid grid, String filePath) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
+        PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(filePath + ".csv"), "Cp866"));
         Cell[][] heights = grid.getHeights();
-        writer.write(grid.getStep() + "\n");
-        writer.write(grid.getMinX() + "\n");
-        writer.write(grid.getMinY() + "\n");
+        writer.println(grid.getStep());
+        writer.println(grid.getMinX());
+        writer.println(grid.getMinY());
         for (int i = 0; i < heights.length; i++) {
             for (int j = 0; j < heights[i].length - 1; j++) {
                 if(heights[i][j].isActive())
-                    writer.write(heights[i][j].getValue());
-                writer.write(DEL);
+                    writer.print(heights[i][j].getValue());
+                writer.print(DEL);
             }
             if(heights[i][heights[i].length - 1].isActive())
-                writer.write(heights[i][heights[i].length - 1].getValue());
-            writer.newLine();
+                writer.print(heights[i][heights[i].length - 1].getValue());
+            writer.println();
         }
 
         writer.close();

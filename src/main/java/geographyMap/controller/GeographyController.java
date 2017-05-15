@@ -66,7 +66,7 @@ public class GeographyController {
 
     private void saveGrid(SaveGridEvent event){
         try {
-            CoordinatesLoader.saveGridToFile(event.getGrid(), event.getFilePath());
+            CoordinatesLoader.saveGridToFile(geographyMap.getGrid(), event.getFilePath());
         } catch (IOException e) {
             event.getCallback().onFail(new RuntimeException(e));
         }

@@ -25,6 +25,10 @@ public class GeographyMap {
         makeGrid(borderCoordinates);
     }
 
+    public Grid getGrid() {
+        return grid;
+    }
+
     private void findMinAndMaxCoordinates(Coordinate[] borderCoordinates) {
         minX = Integer.MAX_VALUE;
         minY = Integer.MAX_VALUE;
@@ -55,11 +59,20 @@ public class GeographyMap {
     private void activateCells(List<Integer>[] yCoordinates) {
         for (int i = 0; i < yCoordinates.length; i++) {
             yCoordinates[i].sort(Comparator.comparingInt(o -> o));
-            for (int j = 0; j < yCoordinates[i].size(); j += 2) {
-                if(j + 1 < yCoordinates[i].size())
-                    activateCellsBetween(i, yCoordinates[i].get(j), yCoordinates[i].get(j + 1));
-                else
-                    activateCellsBetween(i, yCoordinates[i].get(j), yCoordinates[i].get(j));
+            int curr = 0;
+            int next = 1;
+            while (curr < yCoordinates[i].size()) {
+                if(curr + 1 < yCoordinates[i].size()) {
+                    while (next + 1 < yCoordinates[i].size() && yCoordinates[i].get(curr) - yCoordinates[i].get(next) <= 1){
+                        next++;
+                    }
+                    activateCellsBetween(i, yCoordinates[i].get(curr), yCoordinates[i].get(next));
+                }
+                else {
+                    activateCellsBetween(i, yCoordinates[i].get(curr), yCoordinates[i].get(curr));
+                    next++;
+                }
+                curr = next;
             }
         }
     }
@@ -132,12 +145,13 @@ public class GeographyMap {
 
             int gridX = (x - minX) / gridStep;
             int gridY = (y - minY) / gridStep;
-            //if(sign(previous.x - gridX) == sign(next.x - gridX))
-             //   yCoordinates[gridX].add(gridY);
-            yCoordinates[gridX].add(gridY);
-
-            int currentY = gridY;
-            int currentX = gridX;
+            if(!yCoordinates[gridX].contains(gridY)) {
+                yCoordinates[gridX].add(gridY);
+            }
+            if(sign(previous.x - gridX) == sign(next.x - gridX))
+                yCoordinates[gridX].add(gridY);
+            int prevX = gridX;
+            int prevY = gridY;
 
             for (int t = 0; t < el; t++)//идём по всем точкам, начиная со второй и до последней
             {
@@ -153,13 +167,15 @@ public class GeographyMap {
 
                 gridX = (x - minX) / gridStep;
                 gridY = (y - minY) / gridStep;
-                if(gridY != currentY || gridX != currentX) {
+                if(prevX != gridX || prevY != gridY) {
                     yCoordinates[gridX].add(gridY);
                 }
-                currentX = gridX;
-                currentY = gridY;
+                prevX = gridX;
+                prevY = gridY;
             }
         }
+
+
 
     }
 
