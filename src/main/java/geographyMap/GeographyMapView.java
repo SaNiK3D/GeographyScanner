@@ -110,7 +110,9 @@ public class GeographyMapView extends JFrame {
         c.fill = GridBagConstraints.BOTH;
 
         canvas = new DrawPanel();
+        canvas.setAutoscrolls(true);
         JScrollPane scrollPane = new JScrollPane(canvas);
+        scrollPane.setViewportView(canvas);
         scrollPane.setPreferredSize(new Dimension(400, 400));
         centralPane.add(scrollPane, c);
 
@@ -145,7 +147,7 @@ public class GeographyMapView extends JFrame {
         menu.add(item);
         menuBar.add(menu);
 
-        JMenu saveItem = new JMenu("Сохранить файл...");
+        JButton saveItem = new JButton("Сохранить файл...");
         saveItem.addActionListener(e -> {
             JFileChooser fileChooser = getCsvFileChooser();
             fileChooser.setDialogTitle("Сохранение сетки высот");
@@ -327,6 +329,7 @@ public class GeographyMapView extends JFrame {
         map.closePath();
         g.fill(map);
         canvas.setImage(img);
+        canvas.setPreferredSize(new Dimension(img.getWidth(), img.getHeight()));
         canvas.repaint();
 
         g.dispose();
