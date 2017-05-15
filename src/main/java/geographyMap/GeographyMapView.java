@@ -54,6 +54,26 @@ public class GeographyMapView extends JFrame {
         JMenuBar menuBar = createMenu();
         this.setJMenuBar(menuBar);
         this.pack();
+
+        UIManager.put("OptionPane.cancelButtonText", "Отмена");
+        UIManager.put("OptionPane.noButtonText", "Нет");
+        UIManager.put("OptionPane.okButtonText", "Да");
+        UIManager.put(
+                "FileChooser.saveButtonText", "Сохранить");
+        UIManager.put(
+                "FileChooser.openButtonText", "Открыть");
+        UIManager.put(
+                "FileChooser.cancelButtonText", "Отмена");
+        UIManager.put(
+                "FileChooser.fileNameLabelText", "Наименование файла");
+        UIManager.put(
+                "FileChooser.filesOfTypeLabelText", "Типы файлов");
+        UIManager.put(
+                "FileChooser.lookInLabelText", "Директория");
+        UIManager.put(
+                "FileChooser.saveInLabelText", "Сохранить в директории");
+        UIManager.put(
+                "FileChooser.folderNameLabelText", "Путь директории");
     }
 
     private JPanel createButtonPanel() {
@@ -63,7 +83,12 @@ public class GeographyMapView extends JFrame {
         actionButton = new JButton(START);
         actionButton.setEnabled(false);
         actionButton.addActionListener(e -> {
-            presenter.startInterpolation((Integer) stepSpinner.getValue());
+            if(!isInterpolation)
+                presenter.startInterpolation((Integer) stepSpinner.getValue());
+            else {
+                actionButton.setEnabled(false);
+                presenter.interruptInterpolation();
+            }
         });
         bottomPanel.add(actionButton);
 
@@ -99,6 +124,7 @@ public class GeographyMapView extends JFrame {
         JMenuItem item = new JMenuItem("Высот");
         item.addActionListener(e -> {
             JFileChooser fileChooser = getCsvFileChooser();
+            fileChooser.setDialogTitle("Выберите файл высот для загрузки");
             String filePath = getFilePathFrom(fileChooser);
             if (filePath != null) {
                 presenter.loadSurfaceHeights(filePath);
@@ -109,6 +135,7 @@ public class GeographyMapView extends JFrame {
         item = new JMenuItem("Границ");
         item.addActionListener(e -> {
             JFileChooser fileChooser = getCsvFileChooser();
+            fileChooser.setDialogTitle("Выберите файл границ для загрузки");
             String filePath = getFilePathFrom(fileChooser);
             if (filePath != null) {
                 presenter.loadBorders(filePath);
@@ -118,15 +145,16 @@ public class GeographyMapView extends JFrame {
         menu.add(item);
         menuBar.add(menu);
 
-        item = new JMenuItem("Сохранить файл...");
-        item.addActionListener(e -> {
+        JMenu saveItem = new JMenu("Сохранить файл...");
+        saveItem.addActionListener(e -> {
             JFileChooser fileChooser = getCsvFileChooser();
+            fileChooser.setDialogTitle("Сохранение сетки высот");
             String filePath = getSavePath(fileChooser);
             if(filePath != null){
                 presenter.saveGridToFile(filePath);
             }
         });
-        menuBar.add(item);
+        menuBar.add(saveItem);
 
         return menuBar;
     }
@@ -308,6 +336,7 @@ public class GeographyMapView extends JFrame {
 
     public void stopInterpolation() {
         isInterpolation = false;
+        actionButton.setEnabled(true);
         changeButtonText();
     }
 
@@ -316,8 +345,12 @@ public class GeographyMapView extends JFrame {
         changeButtonText();
     }
 
-    public void saveGrid(Grid grid) {
+    public void showInformMessage(String message, String title) {
+        JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
+    }
 
+    public void showErrorMessage(String message, String title) {
+        JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
     }
 
     private class ShowingTableModel extends AbstractTableModel {

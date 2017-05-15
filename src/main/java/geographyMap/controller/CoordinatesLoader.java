@@ -12,7 +12,7 @@ import java.util.Arrays;
 /**
  * Created by User on 08.05.2017
  */
-class CoordinatesLoader {//todo: сделать проверку на корректность файла
+class CoordinatesLoader {
     private static final char DEL = ';';
 
     static Coordinate[] getBorderCoordinates(String filePath) throws IOException {

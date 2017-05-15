@@ -14,6 +14,8 @@ public class GeographyMap {
     private int maxY;
     private int gridStep;
 
+    private volatile boolean running = true;
+
     public GeographyMap() {
     }
 
@@ -188,6 +190,8 @@ public class GeographyMap {
         Map<Coordinate, Integer> functionMap = new HashMap<>();
         Map<Coordinate, Integer> functionCount = new HashMap<>();
         for (int i = 0; i < functions.length; i++) {
+            if(!running)
+                return null;
             int gridX = (functions[i].coordinate.x - minX) / gridStep;
             int gridY = (functions[i].coordinate.y - minY) / gridStep;
 
@@ -206,6 +210,8 @@ public class GeographyMap {
         }
         for (int i = 0; i < grid.getHeights().length; i++) {
             for (int j = 0; j < grid.getHeights()[i].length; j++) {
+                if(!running)
+                    return null;
                 if (functionMap.containsKey(new Coordinate(i, j)))
                     grid.getHeights()[i][j].setValue(functionMap.get(new Coordinate(i, j)));
                 else
@@ -233,4 +239,7 @@ public class GeographyMap {
         return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
     }
 
+    public void terminate() {
+        running = false;
+    }
 }

@@ -50,18 +50,16 @@ public class GeographyController {
         interpolationThread = new Thread(() -> {
             geographyMap.setBorders(borderCoordinates, event.getGridStep());
             Grid grid = geographyMap.interpolate(surfaceHeights);
-            event.getCallback().onSuccess(grid, borderCoordinates);
+            if(grid != null)
+                event.getCallback().onSuccess(grid, borderCoordinates);
         });
 
         interpolationThread.start();
     }
 
     private void interruptInterpolation(InterruptInterpolationEvent event){
-        try {
-            interpolationThread.join();
-        } catch (InterruptedException e) {
-            event.getCallback().onFail(new RuntimeException("Ошибка остановки интерполяции!", e));
-        }
+        geographyMap.terminate();
+        event.getCallback().onSuccess();
     }
 
     private void saveGrid(SaveGridEvent event){

@@ -20,11 +20,12 @@ public class GeographyMapPresenter {
             @Override
             void onSuccess(Coordinate[] borderCoordinates) {
                 view.setBorderCoordinates(borderCoordinates);
+                view.showInformMessage("Файл границ успешно загружен", "Загрузка файла границ");
             }
 
             @Override
             public void onFail(RuntimeException e) {
-
+                view.showErrorMessage("Ошибка при загрузки файла границ!", "Загрузка файла");
             }
         }));
     }
@@ -34,11 +35,12 @@ public class GeographyMapPresenter {
             @Override
             void onSuccess(Function2Args[] heights) {
                 view.setHeights(heights);
+                view.showInformMessage("Файл высот успешно загружен", "Загрузка файла высот");
             }
 
             @Override
             public void onFail(RuntimeException e) {
-
+                view.showErrorMessage("Ошибка при загрузки файла высот!", "Загрузка файла");
             }
         }));
     }
@@ -49,7 +51,6 @@ public class GeographyMapPresenter {
             void onSuccess(Grid grid, Coordinate[] borderCoordinates) {
                 view.stopInterpolation();
                 view.drawMap(grid, borderCoordinates);
-                view.saveGrid(grid);
             }
 
             @Override
@@ -65,12 +66,14 @@ public class GeographyMapPresenter {
         eventBus.post(new InterruptInterpolationEvent(new AbstractCallback() {
             @Override
             void onSuccess() {
-
+                view.stopInterpolation();
+                view.showInformMessage("Создание карты прервано!", "Прерывание");
             }
 
             @Override
             public void onFail(RuntimeException e) {
-
+                view.stopInterpolation();
+                view.showErrorMessage("Ошибка прерывания создания карты!", "Прерывание");
             }
         }));
     }
@@ -79,12 +82,12 @@ public class GeographyMapPresenter {
         eventBus.post(new SaveGridEvent(filePath, new AbstractCallback() {
             @Override
             void onSuccess() {
-
+                view.showInformMessage("Файл успешно сохранен!", "Сохранение файла");
             }
 
             @Override
             public void onFail(RuntimeException e) {
-
+                view.showErrorMessage("Ошибка при сохранении файла!", "Сохранение файла");
             }
         }));
     }
