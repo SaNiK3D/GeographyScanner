@@ -22,7 +22,7 @@ public class GeographyMapView extends JFrame {
 
     private JButton actionButton;
     private JSpinner stepSpinner;
-    private JPanel canvas;
+    private DrawPanel canvas;
     private ShowingTableModel borderTableModel;
     private ShowingTableModel heightsTableModel;
 
@@ -85,7 +85,7 @@ public class GeographyMapView extends JFrame {
         c.weighty = 1;
         c.fill = GridBagConstraints.BOTH;
 
-        canvas = new JPanel();
+        canvas = new DrawPanel();
         JScrollPane scrollPane = new JScrollPane(canvas);
         scrollPane.setPreferredSize(new Dimension(400, 400));
         centralPane.add(scrollPane, c);
@@ -244,11 +244,11 @@ public class GeographyMapView extends JFrame {
         BufferedImage basicImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         int maxH = grid.getMaxHeight();
         int minH = grid.getMinHeight();
-        int dH = (maxH - minH) / 2;
+        int dH = (maxH + minH) / 2 + 1;
         Graphics2D g2d = basicImg.createGraphics();
         for (int i = 0; i < grid.getHeights().length; i++) {
             for (int j = 0; j < grid.getHeights()[i].length; j++) {
-                if(grid.getHeights()[i][j].isActive()){
+                //if(grid.getHeights()[i][j].isActive()){
                     Color color;
                     float red, green, blue;
                     if(grid.getHeights()[i][j].getValue() < dH){
@@ -257,28 +257,31 @@ public class GeographyMapView extends JFrame {
                         blue = 0f;
                     } else {
                         red = 0.0f;
-                        blue = (float) (grid.getHeights()[i][j].getValue() - (dH - 1)) / dH;
+                        blue = (float) (grid.getHeights()[i][j].getValue() - dH) / dH;
                         green = 1.0f - blue;
                     }
 
                     color = new Color(red, green, blue);
                     g2d.setColor(color);
                     g2d.fillRect(grid.getMinX() + i * grid.getStep(), grid.getMinY() + j * grid.getStep(), grid.getStep(), grid.getStep());
-                }
+                //}
             }
         }
 
-        Image img = canvas.createImage(width, height);
-        Graphics2D g = (Graphics2D) img.getGraphics();
+        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = img.createGraphics();
         TexturePaint paint = new TexturePaint(basicImg, new Rectangle(width, height));
         g.setPaint(paint);
+        g.setBackground(Color.WHITE);
         GeneralPath map = new GeneralPath();
-        map.moveTo(borderCoordinates[0].x, borderCoordinates[1].y);
+        map.moveTo(borderCoordinates[0].x, borderCoordinates[0].y);
         for (int i = 1; i < borderCoordinates.length; i++) {
             map.lineTo(borderCoordinates[i].x, borderCoordinates[i].y);
         }
         map.closePath();
         g.fill(map);
+        canvas.setImage(img);
+        canvas.repaint();
 
         g.dispose();
         g2d.dispose();
@@ -336,6 +339,22 @@ public class GeographyMapView extends JFrame {
         private void setRowData(String[][] newRowData) {
             rowData = newRowData;
             fireTableDataChanged();
+        }
+    }
+
+    private class DrawPanel extends JPanel{
+        BufferedImage image = null;
+
+        private void setImage(BufferedImage image) {
+            this.image = image;
+        }
+
+        @Override
+        public void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if(image != null){
+                g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), this);
+            }
         }
     }
 }

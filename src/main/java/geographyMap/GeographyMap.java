@@ -132,8 +132,8 @@ public class GeographyMap {
 
             int gridX = (x - minX) / gridStep;
             int gridY = (y - minY) / gridStep;
-            if(sign(previous.x - gridX) == sign(next.x - gridX))
-                yCoordinates[gridX].add(gridY);
+            //if(sign(previous.x - gridX) == sign(next.x - gridX))
+             //   yCoordinates[gridX].add(gridY);
             yCoordinates[gridX].add(gridY);
 
             int currentY = gridY;
