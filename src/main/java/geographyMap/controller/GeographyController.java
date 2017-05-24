@@ -40,6 +40,7 @@ public class GeographyController {
 
     void startInterpolation(int gridStep, InterpolateCallback callback){
         Thread interpolationThread = new Thread(() -> {
+            geographyMap.run();
             Coordinate[] sortedCoordinates = geographyMap.setBorders(borderCoordinates, gridStep);
             Grid grid = geographyMap.interpolate(surfaceHeights);
             if (grid != null)
