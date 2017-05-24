@@ -3,8 +3,6 @@ package geographyMap;
 import geographyMap.controller.GeographyMapPresenter;
 
 import javax.swing.*;
-import javax.swing.event.MenuEvent;
-import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
@@ -27,6 +25,10 @@ public class GeographyMapView extends JFrame {
     private DrawPanel canvas;
     private ShowingTableModel borderTableModel;
     private ShowingTableModel heightsTableModel;
+
+    private JFileChooser bordersCsvFileChooser;
+    private JFileChooser heightsCsvFileChooser;
+    private JFileChooser saveGridCsvFileChooser;
 
     public GeographyMapView() {
         JPanel rootPanel = new JPanel(new GridBagLayout());
@@ -124,10 +126,9 @@ public class GeographyMapView extends JFrame {
         JMenu menu = new JMenu("Загрузить файл...");
 
         JMenuItem item = new JMenuItem("Высот");
+        heightsCsvFileChooser = getCsvFileChooser("Выберите файл высот для загрузки");
         item.addActionListener(e -> {
-            JFileChooser fileChooser = getCsvFileChooser();
-            fileChooser.setDialogTitle("Выберите файл высот для загрузки");
-            String filePath = getFilePathFrom(fileChooser);
+            String filePath = getFilePathFrom(heightsCsvFileChooser);
             if (filePath != null) {
                 presenter.loadSurfaceHeights(filePath);
             }
@@ -135,10 +136,9 @@ public class GeographyMapView extends JFrame {
         menu.add(item);
 
         item = new JMenuItem("Границ");
+        bordersCsvFileChooser = getCsvFileChooser("Выберите файл границ для загрузки");
         item.addActionListener(e -> {
-            JFileChooser fileChooser = getCsvFileChooser();
-            fileChooser.setDialogTitle("Выберите файл границ для загрузки");
-            String filePath = getFilePathFrom(fileChooser);
+            String filePath = getFilePathFrom(bordersCsvFileChooser);
             if (filePath != null) {
                 presenter.loadBorders(filePath);
             }
@@ -148,10 +148,9 @@ public class GeographyMapView extends JFrame {
         menuBar.add(menu);
 
         JButton saveItem = new JButton("Сохранить файл...");
+        saveGridCsvFileChooser = getCsvFileChooser("Сохранение сетки высот");
         saveItem.addActionListener(e -> {
-            JFileChooser fileChooser = getCsvFileChooser();
-            fileChooser.setDialogTitle("Сохранение сетки высот");
-            String filePath = getSavePath(fileChooser);
+            String filePath = getSavePath(saveGridCsvFileChooser);
             if(filePath != null){
                 presenter.saveGridToFile(filePath);
             }
@@ -178,11 +177,12 @@ public class GeographyMapView extends JFrame {
         return null;
     }
 
-    private JFileChooser getCsvFileChooser() {
+    private JFileChooser getCsvFileChooser(String title) {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setAcceptAllFileFilterUsed(false);
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fileChooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
+        fileChooser.setDialogTitle(title);
         return fileChooser;
     }
 
