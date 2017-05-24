@@ -5,18 +5,12 @@ package geographyMap.controller;
  */
 class LoadSurfaceHeightsEvent {
     private final String filePath;
-    private final LoadSurfaceHeightsCallback callback;
 
-    LoadSurfaceHeightsEvent(String filePath, LoadSurfaceHeightsCallback callback) {
+    LoadSurfaceHeightsEvent(String filePath) {
         this.filePath = filePath;
-        this.callback = callback;
     }
 
     String getFilePath() {
         return filePath;
-    }
-
-    LoadSurfaceHeightsCallback getCallback() {
-        return callback;
     }
 }

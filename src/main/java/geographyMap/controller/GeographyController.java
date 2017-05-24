@@ -15,8 +15,6 @@ public class GeographyController {
     private Function2Args[] surfaceHeights;
     private Coordinate[] borderCoordinates;
 
-    private Thread interpolationThread;
-
     public GeographyController(GeographyMap geographyMap) {
         this.geographyMap = geographyMap;
 
@@ -41,11 +39,11 @@ public class GeographyController {
     }
 
     void startInterpolation(int gridStep, InterpolateCallback callback){
-        interpolationThread = new Thread(() -> {
-            geographyMap.setBorders(borderCoordinates, gridStep);
+        Thread interpolationThread = new Thread(() -> {
+            Coordinate[] sortedCoordinates = geographyMap.setBorders(borderCoordinates, gridStep);
             Grid grid = geographyMap.interpolate(surfaceHeights);
-            if(grid != null)
-                callback.onSuccess(grid, borderCoordinates);
+            if (grid != null)
+                callback.onSuccess(grid, sortedCoordinates);
         });
 
         interpolationThread.start();

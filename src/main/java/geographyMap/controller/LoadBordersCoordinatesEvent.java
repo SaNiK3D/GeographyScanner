@@ -5,18 +5,13 @@ package geographyMap.controller;
  */
 class LoadBordersCoordinatesEvent {
     private final String filePath;
-    private final LoadBordersCoordinatesCallback callback;
 
-    LoadBordersCoordinatesEvent(String filePath, LoadBordersCoordinatesCallback callback) {
+    LoadBordersCoordinatesEvent(String filePath) {
         this.filePath = filePath;
-        this.callback = callback;
     }
 
     String getFilePath() {
         return filePath;
     }
 
-    LoadBordersCoordinatesCallback getCallback() {
-        return callback;
-    }
 }

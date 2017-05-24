@@ -19,12 +19,12 @@ public class GeographyMap {
     public GeographyMap() {
     }
 
-    public void setBorders(Coordinate[] borderCoordinates, int gridStep){
+    public Coordinate[] setBorders(Coordinate[] borderCoordinates, int gridStep){
         if (borderCoordinates.length < 3)
             throw new IllegalArgumentException("Количество координат границ должно быть как минимум 3");
         findMinAndMaxCoordinates(borderCoordinates);
         this.gridStep = gridStep;
-        makeGrid(borderCoordinates);
+        return makeGrid(borderCoordinates);
     }
 
     public Grid getGrid() {
@@ -44,7 +44,7 @@ public class GeographyMap {
         }
     }
 
-    private void makeGrid(Coordinate[] borderCoordinates) {
+    private Coordinate[] makeGrid(Coordinate[] borderCoordinates) {
         int width = ((maxX - minX) / gridStep) + 1;
         int height = ((maxY - minY) / gridStep) + 1;
         grid = new Grid(width, height, minX, minY, gridStep);
@@ -55,8 +55,10 @@ public class GeographyMap {
             yCoordinates[i] = new ArrayList<>();
 
         }
-        calculateYCoordinates(borderCoordinates, yCoordinates);
+        calculateYCoordinates(sortedBorderCoordinates, yCoordinates);
         activateCells(yCoordinates);
+
+        return sortedBorderCoordinates;
     }
 
     private Coordinate[] sortCoordinates(Coordinate[] coordinates) {
@@ -69,6 +71,10 @@ public class GeographyMap {
         Coordinate[] sortedCoordinates = Arrays.copyOf(coordinates, coordinates.length);
         Coordinate finalLeft = left;
         Arrays.sort(sortedCoordinates, (o1, o2) -> {
+            if(o1.equals(finalLeft))
+                return -1;
+            if(o2.equals(finalLeft))
+                return 1;
             double tan1, tan2;
             if(o1.y - finalLeft.y == 0)
                 tan1 = Double.MAX_VALUE;
@@ -273,5 +279,9 @@ public class GeographyMap {
 
     public void terminate() {
         running = false;
+    }
+
+    public void run(){
+        running = true;
     }
 }

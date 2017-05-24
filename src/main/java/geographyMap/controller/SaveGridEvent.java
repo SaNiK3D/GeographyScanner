@@ -5,15 +5,9 @@ package geographyMap.controller;
  */
 class SaveGridEvent {
     private final String filePath;
-    private final AbstractCallback callback;
 
-    SaveGridEvent(String filePath, AbstractCallback callback) {
+    SaveGridEvent(String filePath) {
         this.filePath = filePath;
-        this.callback = callback;
-    }
-
-    AbstractCallback getCallback() {
-        return callback;
     }
 
     String getFilePath() {
