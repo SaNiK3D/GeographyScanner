@@ -15,7 +15,7 @@ public class GeographyMapPresenter {
     }
 
     public void loadBorders(String filePath){
-        eventBus.post(new LoadBordersCoordinatesEvent(filePath, new LoadBordersCoordinatesCallback() {
+        controller.loadBorderCoordinates(filePath, new LoadBordersCoordinatesCallback() {
             @Override
             void onSuccess(Coordinate[] borderCoordinates) {
                 view.setBorderCoordinates(borderCoordinates);
@@ -26,11 +26,11 @@ public class GeographyMapPresenter {
             public void onFail(RuntimeException e) {
                 view.showErrorMessage("Ошибка при загрузки файла границ!", "Загрузка файла");
             }
-        }));
+        });
     }
 
     public void loadSurfaceHeights(String filePath){
-        eventBus.post(new LoadSurfaceHeightsEvent(filePath, new LoadSurfaceHeightsCallback() {
+        controller.loadSurfaceHeights(filePath, new LoadSurfaceHeightsCallback() {
             @Override
             void onSuccess(Function2Args[] heights) {
                 view.setHeights(heights);
@@ -41,11 +41,12 @@ public class GeographyMapPresenter {
             public void onFail(RuntimeException e) {
                 view.showErrorMessage("Ошибка при загрузки файла высот!", "Загрузка файла");
             }
-        }));
+        });
     }
 
     public void startInterpolation(int gridStep){
-        eventBus.post(new InterpolateEvent(gridStep, new InterpolateCallback() {
+        view.startInterpolation();
+        controller.startInterpolation(gridStep, new InterpolateCallback() {
             @Override
             void onSuccess(Grid grid, Coordinate[] borderCoordinates) {
                 view.stopInterpolation();
@@ -56,13 +57,11 @@ public class GeographyMapPresenter {
             public void onFail(RuntimeException e) {
                 view.stopInterpolation();
             }
-        }));
-
-        view.startInterpolation();
+        });
     }
 
     public void interruptInterpolation(){
-        eventBus.post(new InterruptInterpolationEvent(new AbstractCallback() {
+        controller.interruptInterpolation(new AbstractCallback() {
             @Override
             void onSuccess() {
                 view.stopInterpolation();
@@ -74,11 +73,12 @@ public class GeographyMapPresenter {
                 view.stopInterpolation();
                 view.showErrorMessage("Ошибка прерывания создания карты!", "Прерывание");
             }
-        }));
+        });
+
     }
 
     public void saveGridToFile(String filePath) {
-        eventBus.post(new SaveGridEvent(filePath, new AbstractCallback() {
+        controller.saveGrid(filePath, new AbstractCallback() {
             @Override
             void onSuccess() {
                 view.showInformMessage("Файл успешно сохранен!", "Сохранение файла");
@@ -88,6 +88,6 @@ public class GeographyMapPresenter {
             public void onFail(RuntimeException e) {
                 view.showErrorMessage("Ошибка при сохранении файла!", "Сохранение файла");
             }
-        }));
+        });
     }
 }

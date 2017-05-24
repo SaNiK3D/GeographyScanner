@@ -1,11 +1,9 @@
 package geographyMap.controller;
 
-import eventbus.Event;
-
 /**
  * Created by User on 08.05.2017
  */
-class LoadBordersCoordinatesEvent implements Event {
+class LoadBordersCoordinatesEvent {
     private final String filePath;
     private final LoadBordersCoordinatesCallback callback;
 

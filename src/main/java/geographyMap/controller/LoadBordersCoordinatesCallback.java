@@ -1,6 +1,5 @@
 package geographyMap.controller;
 
-import eventbus.Callback;
 import geographyMap.Coordinate;
 
 /**

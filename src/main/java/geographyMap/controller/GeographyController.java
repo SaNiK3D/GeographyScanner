@@ -1,6 +1,5 @@
 package geographyMap.controller;
 
-import eventbus.EventBus;
 import geographyMap.Coordinate;
 import geographyMap.Function2Args;
 import geographyMap.GeographyMap;
@@ -18,56 +17,51 @@ public class GeographyController {
 
     private Thread interpolationThread;
 
-    public GeographyController(EventBus eventBus, GeographyMap geographyMap) {
+    public GeographyController(GeographyMap geographyMap) {
         this.geographyMap = geographyMap;
 
-        eventBus.addHandler(LoadBordersCoordinatesEvent.class, this::loadBorderCoordinates);
-        eventBus.addHandler(LoadSurfaceHeightsEvent.class, this::loadSurfaceHeights);
-        eventBus.addHandler(InterpolateEvent.class, this::startInterpolation);
-        eventBus.addHandler(InterruptInterpolationEvent.class, this::interruptInterpolation);
-        eventBus.addHandler(SaveGridEvent.class, this::saveGrid);
     }
 
-    private void loadSurfaceHeights(LoadSurfaceHeightsEvent event){
+    void loadSurfaceHeights(String path, LoadSurfaceHeightsCallback callback){
         try {
-            surfaceHeights = CoordinatesLoader.getHeights(event.getFilePath());
-            event.getCallback().onSuccess(surfaceHeights);
+            surfaceHeights = CoordinatesLoader.getHeights(path);
+            callback.onSuccess(surfaceHeights);
         } catch (IOException e) {
-            event.getCallback().onFail(new RuntimeException(e));
+            callback.onFail(new RuntimeException(e));
         }
     }
 
-    private void loadBorderCoordinates(LoadBordersCoordinatesEvent event){
+    void loadBorderCoordinates(String path, LoadBordersCoordinatesCallback callback){
         try {
-            borderCoordinates = CoordinatesLoader.getBorderCoordinates(event.getFilePath());
-            event.getCallback().onSuccess(borderCoordinates);
+            borderCoordinates = CoordinatesLoader.getBorderCoordinates(path);
+            callback.onSuccess(borderCoordinates);
         } catch (IOException e) {
-            event.getCallback().onFail(new RuntimeException(e));
+            callback.onFail(new RuntimeException(e));
         }
     }
 
-    private void startInterpolation(InterpolateEvent event){
+    void startInterpolation(int gridStep, InterpolateCallback callback){
         interpolationThread = new Thread(() -> {
-            geographyMap.setBorders(borderCoordinates, event.getGridStep());
+            geographyMap.setBorders(borderCoordinates, gridStep);
             Grid grid = geographyMap.interpolate(surfaceHeights);
             if(grid != null)
-                event.getCallback().onSuccess(grid, borderCoordinates);
+                callback.onSuccess(grid, borderCoordinates);
         });
 
         interpolationThread.start();
     }
 
-    private void interruptInterpolation(InterruptInterpolationEvent event){
+    void interruptInterpolation(AbstractCallback callback){
         geographyMap.terminate();
-        event.getCallback().onSuccess();
+        callback.onSuccess();
     }
 
-    private void saveGrid(SaveGridEvent event){
+    void saveGrid(String path, AbstractCallback callback){
         try {
-            CoordinatesLoader.saveGridToFile(geographyMap.getGrid(), event.getFilePath());
+            CoordinatesLoader.saveGridToFile(geographyMap.getGrid(), path);
         } catch (IOException e) {
-            event.getCallback().onFail(new RuntimeException(e));
+            callback.onFail(new RuntimeException(e));
         }
-        event.getCallback().onSuccess();
+        callback.onSuccess();
     }
 }

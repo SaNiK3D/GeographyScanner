@@ -1,4 +1,3 @@
-import eventbus.EventBus;
 import geographyMap.GeographyMap;
 import geographyMap.GeographyMapView;
 import geographyMap.controller.GeographyController;
@@ -12,12 +11,10 @@ import javax.swing.*;
 public class Main {
     public static void main(String[] args) {
         GeographyMapView view = new GeographyMapView();
-        EventBus eventBus = new EventBus();
-        GeographyMapPresenter presenter = new GeographyMapPresenter(view, eventBus);
-        view.setPresenter(presenter);
         GeographyMap model = new GeographyMap();
-        GeographyController controller = new GeographyController(eventBus, model);
-
+        GeographyController controller = new GeographyController(model);
+        GeographyMapPresenter presenter = new GeographyMapPresenter(view, controller);
+        view.setPresenter(presenter);
         SwingUtilities.invokeLater(() -> {
             view.setLocationRelativeTo(null);
             view.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

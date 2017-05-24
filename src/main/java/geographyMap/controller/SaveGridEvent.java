@@ -1,12 +1,9 @@
 package geographyMap.controller;
 
-import eventbus.Event;
-import geographyMap.Grid;
-
 /**
  * Created by User on 09.05.2017
  */
-class SaveGridEvent implements Event{
+class SaveGridEvent {
     private final String filePath;
     private final AbstractCallback callback;
 

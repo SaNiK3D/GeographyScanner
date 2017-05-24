@@ -1,11 +1,9 @@
 package geographyMap.controller;
 
-import eventbus.Event;
-
 /**
  * Created by User on 09.05.2017
  */
-class InterpolateEvent implements Event{
+class InterpolateEvent {
     private final int gridStep;
     private final InterpolateCallback callback;
 

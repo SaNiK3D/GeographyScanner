@@ -1,11 +1,9 @@
 package geographyMap.controller;
 
-import eventbus.Event;
-
 /**
  * Created by User on 08.05.2017
  */
-class LoadSurfaceHeightsEvent implements Event {
+class LoadSurfaceHeightsEvent {
     private final String filePath;
     private final LoadSurfaceHeightsCallback callback;
 
