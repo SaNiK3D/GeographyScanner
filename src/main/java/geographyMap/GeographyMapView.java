@@ -31,6 +31,7 @@ public class GeographyMapView extends JFrame {
     private JFileChooser saveGridCsvFileChooser;
 
     public GeographyMapView() {
+        initUIManager();
         JPanel rootPanel = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
 
@@ -56,7 +57,9 @@ public class GeographyMapView extends JFrame {
         JMenuBar menuBar = createMenu();
         this.setJMenuBar(menuBar);
         this.pack();
+    }
 
+    private void initUIManager() {
         UIManager.put("OptionPane.cancelButtonText", "Отмена");
         UIManager.put("OptionPane.noButtonText", "Нет");
         UIManager.put("OptionPane.okButtonText", "Да");

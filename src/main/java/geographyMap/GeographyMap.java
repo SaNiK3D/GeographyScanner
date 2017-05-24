@@ -48,6 +48,7 @@ public class GeographyMap {
         int width = ((maxX - minX) / gridStep) + 1;
         int height = ((maxY - minY) / gridStep) + 1;
         grid = new Grid(width, height, minX, minY, gridStep);
+        Coordinate[] sortedBorderCoordinates = sortCoordinates(borderCoordinates);
         //noinspection unchecked
         List<Integer>[] yCoordinates = new List[width];
         for (int i = 0; i < width; i++) {
@@ -56,6 +57,37 @@ public class GeographyMap {
         }
         calculateYCoordinates(borderCoordinates, yCoordinates);
         activateCells(yCoordinates);
+    }
+
+    private Coordinate[] sortCoordinates(Coordinate[] coordinates) {
+        Coordinate left = coordinates[0];
+        for (int i = 1; i < coordinates.length; i++) {
+            if(coordinates[i].x == minX && coordinates[i].y < left.y){
+                left = coordinates[i];
+            }
+        }
+        Coordinate[] sortedCoordinates = Arrays.copyOf(coordinates, coordinates.length);
+        Coordinate finalLeft = left;
+        Arrays.sort(sortedCoordinates, (o1, o2) -> {
+            double tan1, tan2;
+            if(o1.y - finalLeft.y == 0)
+                tan1 = Double.MAX_VALUE;
+            else
+                tan1 = (o1.x - finalLeft.x) / (o1.y - finalLeft.y);
+
+            if(o2.y - finalLeft.y == 0)
+                tan2 = Double.MAX_VALUE;
+            else
+                tan2 =  (o2.x - finalLeft.x) / (o2.y - finalLeft.y);
+
+            if(tan1 > tan2)
+                return 1;
+            if(tan1 < tan2)
+                return -1;
+            return o1.x - o2.x;
+        });
+
+        return sortedCoordinates;
     }
 
     private void activateCells(List<Integer>[] yCoordinates) {
