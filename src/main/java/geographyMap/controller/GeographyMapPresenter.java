@@ -1,6 +1,5 @@
 package geographyMap.controller;
 
-import eventbus.EventBus;
 import geographyMap.*;
 
 /**
@@ -8,11 +7,11 @@ import geographyMap.*;
  */
 public class GeographyMapPresenter {
     private final GeographyMapView view;
-    private final EventBus eventBus;
+    private final GeographyController controller;
 
-    public GeographyMapPresenter(GeographyMapView view, EventBus eventBus) {
+    public GeographyMapPresenter(GeographyMapView view, GeographyController controller) {
         this.view = view;
-        this.eventBus = eventBus;
+        this.controller = controller;
     }
 
     public void loadBorders(String filePath){
